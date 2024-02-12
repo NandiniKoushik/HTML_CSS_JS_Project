@@ -1,77 +1,95 @@
-let isDOBopen = false;
-let DOB;
-const iconcontent = document.getElementById('icon');
-const buttoncontent = document.getElementById('contents');
-const beforeDOB = document.getElementById('beforeDOB');
-const afteraddDOB = document.getElementById('afteraddDOB');
-const addbutton = document.getElementById('addbutton');
-const dateinput = document.getElementById('dateinput')
-const yearEL = document.getElementById('year');
-const monthEL = document.getElementById('month');
-const dayEL = document.getElementById('days');
-const hourEL = document.getElementById('hour');
-const minuteEL = document.getElementById('minute');
-const secondEL = document.getElementById('second');
-
-const makeTwodigitnumber = (number) =>
-{
-    return number > 9 ? number :`0${number}`;
+const questionEl = document.getElementById("question")
+const answerEl = document.getElementById("answer_input")
+const questionform = document.getElementById("quest_form")
+const scoreEl = document.getElementById("score")
+let stroedanswer;
+let score = localStorage.getItem("score");
+const randomNumber = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1) + min);
 }
-const toggleDOBselector = ()=>
-{
-    if (isDOBopen)
-     {
-        buttoncontent.classList.add("hide");
+
+const generatequestion = () => {
+    const randomnumber1 = randomNumber(1, 10);
+    const randomnumber2 = randomNumber(1, 10);
+    let questionvalue = randomNumber(1, 4)
+    let question;
+    let answer;
+    let firstnum;
+    let secondnum;
+    if (randomnumber1 < randomnumber2 && questionvalue > 2) {
+        firstnum = randomnumber2;
+        secondnum = randomnumber1;
     }
     else {
-        buttoncontent.classList.remove("hide");
+        firstnum = randomnumber1;
+        secondnum = randomnumber2;
     }
-    isDOBopen =!isDOBopen;
+    switch (questionvalue) {
+        case 1:
+            {
+                question = `Q:What is ${firstnum} multiply by ${secondnum}?`;
+                answer = firstnum * secondnum;
+                break;
+            }
+        case 2:
+            {
+                question = `Q:What is ${firstnum} Added to ${secondnum}?`;
+                answer = firstnum + secondnum;
+                break;
+            }
+        case 3:
+            {
+                question = `Q:What is ${firstnum} Divided by ${secondnum}?`;
+                answer = firstnum / secondnum;
+                break;
+            }
+        case 4:
+            {
+                question = `Q:What is ${firstnum} Subtracted from ${secondnum}?`;
+                answer = firstnum - secondnum;
+                break;
+            }
+    }
+    return { question, answer }
 }
-const Updatetime = () => {
-    const currenttime = new Date();
-    const DOBdiff = currenttime - DOB;
-    const year = Math.floor(DOBdiff / (1000 * 60 * 60 * 365 * 24));
-    const month = Math.floor(DOBdiff / (1000 * 60 * 60 * 365))%12;
-    const days = Math.floor(DOBdiff / (1000 * 60 * 60 * 365))%30;
-    const hour = Math.floor(DOBdiff / (1000 * 60 * 60 ))%24;
-    const minutes = Math.floor(DOBdiff / (1000 * 60 ))%60;
-    const second = Math.floor(DOBdiff / 1000)%60;
-    
-    yearEL.innerHTML = makeTwodigitnumber(year);
-    monthEL.innerHTML = makeTwodigitnumber(month);
-    dayEL.innerHTML = makeTwodigitnumber(days);
-    hourEL.innerHTML = makeTwodigitnumber(hour);
-    minuteEL.innerHTML =makeTwodigitnumber( minutes);
-    secondEL.innerHTML = makeTwodigitnumber(second);
-
-};
-const ContentshowSelector = () => {
-    const DOBstring = dateinput.value;
-    DOB = DOBstring ? new Date(DOBstring) : null;
-    // const year = localStorage.getItem("year")
-    // const month = localStorage.getItem("month")
-    // const date = localStorage.getItem("date")
-    // if (year && month && date)
-    // {
-    //     DOB = new Date(year,month,date)
-    //     }
-    if (DOB) {
-        // localStorage.setItem("year", DOB.getFullYear())
-        // localStorage.setItem("month", DOB.getMonth())
-        // localStorage.setItem("date", DOB.getDate())
-        beforeDOB.classList.add("hide");
-        afteraddDOB.classList.remove("hide");
-        setInterval(()=>Updatetime(),1000)
+const showcontent = () => {
+    let { question, answer } = generatequestion();
+    questionEl.innerText = question;
+    scoreEl.innerText = score;
+    stroedanswer = answer;
+}
+showcontent();
+const getdata = (event) => {
+    event.preventDefault();
+    let data = new FormData(questionform);
+    const userAnswer = +data.get("answer")
+    if (userAnswer === stroedanswer) {
+        score += 1;
+        Toastify({
+            text: `Your answer is correct! your score is now ${score}`,
+            className: "info",
+            gravity: "bottom",
+            position:"center",
+            style: {
+                background: "linear-gradient(to right, #00b09b, #96c93d)",
+            }
+        }).showToast();
     }
     else {
-        afteraddDOB.classList.add("hide");
-        beforeDOB.classList.remove("hide")
+        score -= 1;
+        Toastify({
+            text: `Your answer is wrong! your score is now ${score}`,
+            className: "info",
+            gravity: "bottom",
+            position: "center",
+            style: {
+                background: "linear-gradient(to right, #e33217, #ff001e)",
+            }
+        }).showToast();
     }
-};
-ContentshowSelector();
+    scoreEl.innerText = score;
+    localStorage.setItem("score", score)
+    event.target.reset();
+    showcontent();
+}
 
-
-
-iconcontent.addEventListener("click", toggleDOBselector);
-addbutton.addEventListener("click", ContentshowSelector);
